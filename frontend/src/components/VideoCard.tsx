@@ -6,14 +6,15 @@ interface VideoCardProps {
 }
 
 const VideoCard = ({ video, onDelete }: VideoCardProps) => {
+  const videoUrl = `https://streamly-videos-m-001.s3.eu-north-1.amazonaws.com/${video.filePath}`;
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+      {" "}
       <video
-        src={`http://localhost:3000/${video.filePath}`}
+        src={video.filePath}
         controls
         className="aspect-video w-full bg-black object-cover"
       />
-
       <div className="p-4">
         <h3 className="font-semibold text-white">{video.title}</h3>
 

@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: streamly-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 67716914
+      POSTGRES_DB: video_platform
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: streamly-backend
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      AWS_REGION: eu-north-1
+      AWS_S3_BUCKET: streamly-videos-m-001
+
+    depends_on:
+      - postgres
+
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ~/.aws:/root/.aws:ro
+
+volumes:
+  postgres_data:
