@@ -26,6 +26,20 @@ app.get("/protected", authenticate, (req, res) => {
   });
 });
 
+// Temporary CPU stress endpoint for Auto Scaling testing
+app.get("/stress", (req, res) => {
+  const duration = 500;
+  const start = Date.now();
+
+  while (Date.now() - start < duration) {
+    Math.sqrt(Math.random() * Math.random());
+  }
+
+  res.json({
+    message: "CPU stress test completed",
+  });
+});
+
 app.use("/videos", videoRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
