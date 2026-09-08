@@ -60,8 +60,10 @@ const uploadVideo = async (req, res) => {
       });
     }
 
+    // 1. Upload video to S3
     const filePath = await uploadToS3(req.file);
 
+    // 2. Create video record in PostgreSQL
     const video = await prisma.video.create({
       data: {
         title,
@@ -71,7 +73,11 @@ const uploadVideo = async (req, res) => {
       },
     });
 
-    res.status(201).json(video);
+    // 3. Return response to client
+    res.status(201).json({
+      message: "Video uploaded successfully",
+      video,
+    });
   } catch (error) {
     console.error("Upload failed:", error);
 
@@ -128,14 +134,17 @@ const deleteVideo = async (req, res) => {
       });
     }
 
+    // Verify ownership
     if (video.userId !== req.user.userId) {
       return res.status(403).json({
         error: "You are not allowed to delete this video",
       });
     }
 
+    // Delete video from S3
     await deleteFromS3(video.filePath);
 
+    // Delete video record from PostgreSQL
     await prisma.video.delete({
       where: {
         id: videoId,

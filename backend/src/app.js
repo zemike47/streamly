@@ -26,7 +26,6 @@ app.get("/protected", authenticate, (req, res) => {
   });
 });
 
-
 app.use("/videos", videoRoutes);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
