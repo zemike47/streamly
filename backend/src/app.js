@@ -15,7 +15,7 @@ app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Video Platform API is running",
+    message: "Streamly API is running - CI/CD v2",
   });
 });
 
