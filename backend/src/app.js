@@ -15,7 +15,7 @@ app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Streamly API is running - CI/CD v2",
+    message: "Streamly API is running - CI/CD v3",
   });
 });
 
