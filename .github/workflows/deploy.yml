@@ -1,0 +1,49 @@
+name: Streamly CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: eu-north-1
+  ECR_REPOSITORY: streamly-backend-ecr
+  AWS_ROLE_ARN: arn:aws:iam::516737672784:role/StreamlyGitHubActionsRole
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            ./backend
+
+      - name: Tag Docker image
+        run: |
+          docker tag \
+            ${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            516737672784.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Push Docker image
+        run: |
+          docker push \
+            516737672784.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
