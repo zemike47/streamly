@@ -2,6 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+const redis = require("../config/redis");
+
 const {
   uploadToS3,
   getVideoUrl,
@@ -11,6 +13,17 @@ const {
 // Get all videos
 const getVideos = async (req, res) => {
   try {
+    // 1. Check Redis cache
+    const cachedVideos = await redis.get("videos:all");
+
+    if (cachedVideos) {
+      console.log("Cache HIT");
+      return res.json(JSON.parse(cachedVideos));
+    }
+
+    console.log("Cache MISS");
+
+    // 2. Get videos from PostgreSQL
     const videos = await prisma.video.findMany({
       include: {
         user: {
@@ -26,6 +39,7 @@ const getVideos = async (req, res) => {
       },
     });
 
+    // 3. Generate video URLs
     const videosWithUrls = await Promise.all(
       videos.map(async (video) => ({
         ...video,
@@ -33,6 +47,10 @@ const getVideos = async (req, res) => {
       }))
     );
 
+    // 4. Store result in Redis
+    await redis.set("videos:all", JSON.stringify(videosWithUrls), "EX", 60);
+
+    // 5. Return videos
     res.json(videosWithUrls);
   } catch (error) {
     console.error("Failed to fetch videos:", error);
