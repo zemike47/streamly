@@ -1,10 +1,4 @@
-const {
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-} = require("@aws-sdk/client-s3");
-
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
 const s3 = require("../config/s3");
 
@@ -24,14 +18,7 @@ const uploadToS3 = async (file) => {
 };
 
 const getVideoUrl = async (key) => {
-  const command = new GetObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET,
-    Key: key,
-  });
-
-  return getSignedUrl(s3, command, {
-    expiresIn: 3600,
-  });
+  return `https://d1iu97j4aru12m.cloudfront.net/${key}`;
 };
 
 const deleteFromS3 = async (key) => {
