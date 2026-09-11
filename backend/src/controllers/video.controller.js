@@ -13,15 +13,21 @@ const {
 // Get all videos
 const getVideos = async (req, res) => {
   try {
-    // 1. Check Redis cache
-    const cachedVideos = await redis.get("videos:all");
+    const bypassCache = req.query.cache === "false";
 
-    if (cachedVideos) {
-      console.log("Cache HIT");
-      return res.json(JSON.parse(cachedVideos));
+    // 1. Check Redis unless cache is explicitly bypassed
+    if (!bypassCache) {
+      const cachedVideos = await redis.get("videos:all");
+
+      if (cachedVideos) {
+        console.log("Cache HIT");
+        return res.json(JSON.parse(cachedVideos));
+      }
+
+      console.log("Cache MISS");
+    } else {
+      console.log("Cache BYPASS");
     }
-
-    console.log("Cache MISS");
 
     // 2. Get videos from PostgreSQL
     const videos = await prisma.video.findMany({
@@ -47,8 +53,10 @@ const getVideos = async (req, res) => {
       }))
     );
 
-    // 4. Store result in Redis
-    await redis.set("videos:all", JSON.stringify(videosWithUrls), "EX", 60);
+    // 4. Store result in Redis unless cache is bypassed
+    if (!bypassCache) {
+      await redis.set("videos:all", JSON.stringify(videosWithUrls), "EX", 60);
+    }
 
     // 5. Return videos
     res.json(videosWithUrls);
